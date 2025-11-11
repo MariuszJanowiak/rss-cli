@@ -1,0 +1,10 @@
+# IDE files
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.DS_Store
