@@ -11,21 +11,12 @@ def main():
 
     parser.add_argument("--url", required=True, help="RSS channel URL")
     parser.add_argument("--limit", type=int, default=10, help="Posts limiter (default: 5")
-    parser.add_argument("--include", help="Post Keywords require (separate by comma)")
-    parser.add_argument("--exclude", help="Post Keywords unacceptable (separate by comma)")
+    parser.add_argument("--include", help="Post required Keywords (separate by comma)")
+    parser.add_argument("--exclude", help="Post unacceptable Keywords (separate by comma)")
     args = parser.parse_args()
 
     parsed = fetch_feed(args.url)
-    build_pipeline(parsed, args)
-
-def build_pipeline(parsed: dict, args=None):
-    include = args.include.split(",") if args.include else []
-    exclude = args.exclude.split(",") if args.exclude else []
-
-    #pipeline
-    entries = lazy_iter_entries(parsed)
-    entries = normalize_entries(entries)
-    entries = filter_entries(entries, include, exclude)
+    entries = build_pipeline(parsed, args)
 
     counter = 0
     for entry in entries:
@@ -38,6 +29,16 @@ def build_pipeline(parsed: dict, args=None):
 
     if counter == 0:
         print("Lack of articles or wrong channel RSS - Try again later.")
+
+def build_pipeline(parsed: dict, args=None):
+    include = args.include.split(",") if args.include else []
+    exclude = args.exclude.split(",") if args.exclude else []
+
+    # pipeline
+    entries = lazy_iter_entries(parsed)
+    entries = normalize_entries(entries)
+    entries = filter_entries(entries, include, exclude)
+    return entries
 
 if __name__ == "__main__":
     main()

@@ -1,16 +1,10 @@
-class pipeline:
-    def __init__(self, entries):
-        self.entries = entries
+from typing import Iterable, Iterator
 
-def lazy_iter_entries(parsed: dict):
+def lazy_iter_entries(parsed: dict) -> Iterator[dict]:
     for entry in parsed.get("entries", []):
         yield entry
 
-def normalize_entries(entries):
-    for entry in entries:
-        yield normalized_entry(entry)
-
-def normalized_entry(entry: dict) -> dict:
+def normalize_entry(entry: dict) -> dict:
     return {
         "id": entry.get("id") or entry.get("link") or entry.get("title", ""),
         "title": (entry.get("title") or "").strip(),
@@ -19,16 +13,18 @@ def normalized_entry(entry: dict) -> dict:
         "published": entry.get("published") or entry.get("updated") or "Brak daty",
     }
 
-def filter_entries(entries, include=None, exclude=None):
-    include = [s.lower() for s in include or []]
-    exclude = [s.lower() for s in exclude or []]
+def normalize_entries(entries: Iterable[dict]) -> Iterator[dict]:
+    for e in entries:
+        yield normalize_entry(e)
+
+def filter_entries(entries: Iterable[dict], include=None, exclude=None) -> Iterator[dict]:
+    include = [s.lower() for s in (include or [])]
+    exclude = [s.lower() for s in (exclude or [])]
 
     for entry in entries:
         text = f"{entry['title']} {entry['summary']}".lower()
-
         if include and not any(word in text for word in include):
             continue
         if exclude and any(word in text for word in exclude):
             continue
-
         yield entry
