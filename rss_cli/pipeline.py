@@ -14,12 +14,12 @@ def normalize_entry(entry: dict) -> dict:
     }
 
 def normalize_entries(entries: Iterable[dict]) -> Iterator[dict]:
-    for e in entries:
-        yield normalize_entry(e)
+    for entry in entries:
+        yield normalize_entry(entry)
 
 def filter_entries(entries: Iterable[dict], include=None, exclude=None) -> Iterator[dict]:
-    include = [s.lower() for s in (include or [])]
-    exclude = [s.lower() for s in (exclude or [])]
+    include = [position_included.lower() for position_included in (include or [])]
+    exclude = [position_excluded.lower() for position_excluded in (exclude or [])]
 
     for entry in entries:
         text = f"{entry['title']} {entry['summary']}".lower()
