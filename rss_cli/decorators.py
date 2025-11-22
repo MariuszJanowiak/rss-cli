@@ -1,8 +1,10 @@
+import os
 import time
 import functools
 from collections import deque
 from typing import Callable, Type
 
+### Connection
 def timer(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -45,6 +47,18 @@ def rate_limit(max_calls: int, time_limit: int):
                     print(f"[rate_limit] waiting {sleep_time:.2f}s before calling {func.__name__}")
                     time.sleep(sleep_time)
             calls.append(time.monotonic())
+            return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+### Validation
+def send_mail_validator(*required_keys: str):
+    def decorator(func: Callable) -> Callable:
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            missing = [key for key in required_keys if not os.getenv(key)]
+            if missing:
+                raise RuntimeError(f"Missing required configuration values: {', '.join(missing)}")
             return func(*args, **kwargs)
         return wrapper
     return decorator

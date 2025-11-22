@@ -1,15 +1,11 @@
 import smtplib
+from decorators import send_mail_validator
 from email.message import EmailMessage
+from config import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 
-SMTP_HOST = "smtp.gmail.com"
-SMTP_PORT = 587
-# Protocols:
-# 587 - TLS
-# 465 - SSL
-SMTP_USERNAME = "Agent_mailer@gmail.com"
-SMTP_PASSWORD = "Super_hidden_password123!"
-
+@send_mail_validator("SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")
 def send_email(subject: str, body: str, to_address: str, from_address: str | None = None):
+
     """
     subject - title of the message
     body - actual email message
@@ -17,9 +13,8 @@ def send_email(subject: str, body: str, to_address: str, from_address: str | Non
     from_address - our SMTP address :)
     """
 
-    # Edges
-    if not from_address:
-        from_address = SMTP_USERNAME
+    ### Edges
+    if not from_address: from_address = SMTP_USERNAME
 
     msg = EmailMessage()
     msg["Subject"] = subject
@@ -27,7 +22,8 @@ def send_email(subject: str, body: str, to_address: str, from_address: str | Non
     msg["From"] = from_address
     msg.set_content(body)
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-        smtp.starttls() # Start encoding message
-        smtp.login(SMTP_USERNAME, SMTP_PASSWORD) # log to sender email account
-        smtp.send_message(msg)
+    ### Connect with SMTP server
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+        server.starttls() # Start encoding message
+        server.login(SMTP_USERNAME, SMTP_PASSWORD) # log to sender email account
+        server.send_message(msg) # Sending message

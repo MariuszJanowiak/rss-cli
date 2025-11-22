@@ -1,6 +1,9 @@
 import argparse
-from fetch import fetch_feed
+from config import config_message
 from pipeline import lazy_iter_entries, normalize_entries, filter_entries
+from mailer import send_email
+from fetch import fetch_feed
+
 
 def main():
     parser = (argparse.ArgumentParser(
@@ -33,11 +36,13 @@ def build_pipeline(parsed: dict, args=None):
     include = args.include.split(",") if args.include else []
     exclude = args.exclude.split(",") if args.exclude else []
 
-    # Actual pipeline
+    ### Actual pipeline
     entries = lazy_iter_entries(parsed)
     entries = normalize_entries(entries)
     entries = filter_entries(entries, include, exclude)
     return entries
 
 if __name__ == "__main__":
+    send_email(*config_message)
+    print("koniec programu")
     main()
