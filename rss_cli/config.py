@@ -21,6 +21,9 @@ MSG_SUBJECT = os.getenv("MSG_SUBJECT")
 MSG_BODY = os.getenv("MSG_BODY")
 MSG_ADDRESS = os.getenv("MSG_ADDRESS")
 
+### API
+API_GROQ_KEY = os.getenv("API_GROQ_KEY")
+
 ### Additional
 # DEFAULT_LIMIT = int(os.getenv("DEFAULT_LIMIT", "10"))
 # LOGGING_ENABLED = os.getenv("LOGGING_ENABLED", "true").lower() == "true"

@@ -6,13 +6,6 @@ from config import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 @send_mail_validator("SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")
 def send_email(subject: str, body: str, to_address: str, from_address: str | None = None):
 
-    """
-    subject - title of the message
-    body - actual email message
-    to_address - target email address where message have to go
-    from_address - our SMTP address :)
-    """
-
     ### Edges
     if not from_address: from_address = SMTP_USERNAME
 

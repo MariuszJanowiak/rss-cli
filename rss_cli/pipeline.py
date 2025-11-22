@@ -1,4 +1,5 @@
 from typing import Iterable, Iterator
+from itertools import islice
 
 def lazy_iter_entries(parsed: dict) -> Iterator[dict]:
     for entry in parsed.get("entries", []):
@@ -18,8 +19,8 @@ def normalize_entries(entries: Iterable[dict]) -> Iterator[dict]:
         yield normalize_entry(entry)
 
 def filter_entries(entries: Iterable[dict], include=None, exclude=None) -> Iterator[dict]:
-    include = [position_included.lower() for position_included in (include or [])]
-    exclude = [position_excluded.lower() for position_excluded in (exclude or [])]
+    include = [inc.lower() for inc in (include or [])]
+    exclude = [exc.lower() for exc in (exclude or [])]
 
     for entry in entries:
         text = f"{entry['title']} {entry['summary']}".lower()
@@ -28,3 +29,13 @@ def filter_entries(entries: Iterable[dict], include=None, exclude=None) -> Itera
         if exclude and any(word in text for word in exclude):
             continue
         yield entry
+
+def build_pipeline(parsed: dict, include=None, exclude=None, limit: int | None = None) -> list[dict]:
+    entries = lazy_iter_entries(parsed)
+    entries = normalize_entries(entries)
+    entries = filter_entries(entries, include, exclude)
+
+    if limit is not None and limit > 0:
+        entries = islice(entries, limit)
+
+    return list(entries)

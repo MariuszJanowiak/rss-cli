@@ -1,48 +1,44 @@
 import argparse
-from config import config_message
-from pipeline import lazy_iter_entries, normalize_entries, filter_entries
-from mailer import send_email
+
 from fetch import fetch_feed
+from report.builder import ReportBuilder
+from report.notifier import EmailReportNotifier
+from pipeline import build_pipeline
 
-
-def main():
-    parser = (argparse.ArgumentParser(
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
         prog="rss_cli",
         description="RSS news scrapper filtered by targeted keywords."
-    ))
+    )
 
     parser.add_argument("--url", required=True, help="RSS channel URL")
-    parser.add_argument("--limit", type=int, default=10, help="Posts limiter (default: 5")
+    parser.add_argument("--limit", type=int, default=10, help="Posts limiter (default: 10)")
     parser.add_argument("--include", help="Post required Keywords (separate by comma)")
     parser.add_argument("--exclude", help="Post unacceptable Keywords (separate by comma)")
 
-    args = parser.parse_args()
+    return parser.parse_args()
+
+def main():
+    # Input
+    args = parse_args()
+
+    # Feed
     parsed = fetch_feed(args.url)
-    entries = build_pipeline(parsed, args)
 
-    counter = 0
-    for entry in entries:
-        title = (entry.get("title") or "").strip()
-        link = (entry.get("link") or "").strip()
-        print(f"- {title}\n  {link}\n")
-        counter += 1
-        if counter >= args.limit:
-            break
-
-    if counter == 0:
-        print("Lack of articles or wrong channel RSS - Please try again later.")
-
-def build_pipeline(parsed: dict, args=None):
+    # Pipeline
     include = args.include.split(",") if args.include else []
     exclude = args.exclude.split(",") if args.exclude else []
+    entries = build_pipeline(parsed, include=include, exclude=exclude, limit=args.limit)
 
-    ### Actual pipeline
-    entries = lazy_iter_entries(parsed)
-    entries = normalize_entries(entries)
-    entries = filter_entries(entries, include, exclude)
-    return entries
+    # Report
+    builder = ReportBuilder(language="pl")
+    report_body = builder.build(entries)
+
+    # Mail sender
+    notifier = EmailReportNotifier()
+    notifier.send_report(report_body, feed_url=args.url)
+
+    print("Report has been sent.")
 
 if __name__ == "__main__":
-    send_email(*config_message)
-    print("koniec programu")
     main()
