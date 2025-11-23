@@ -12,6 +12,7 @@ def parse_args() -> argparse.Namespace:
     )
 
     parser.add_argument("--url", required=True, help="RSS channel URL")
+    parser.add_argument("--old", type=int, required=True, help="How old News might be - limit equaled 31 DAYS")
     parser.add_argument("--limit", type=int, default=10, help="Posts limiter (default: 10)")
     parser.add_argument("--include", help="Post required Keywords (separate by comma)")
     parser.add_argument("--exclude", help="Post unacceptable Keywords (separate by comma)")
@@ -28,7 +29,7 @@ def main():
     # Pipeline
     include = args.include.split(",") if args.include else []
     exclude = args.exclude.split(",") if args.exclude else []
-    entries = build_pipeline(parsed, include=include, exclude=exclude, limit=args.limit)
+    entries = build_pipeline(parsed, old=args.old, include=include, exclude=exclude, limit=args.limit)
 
     # Report
     builder = ReportBuilder(language="pl")
@@ -38,7 +39,7 @@ def main():
     notifier = EmailReportNotifier()
     notifier.send_report(report_body, feed_url=args.url)
 
-    print("Report has been sent.")
+    print("Email has been sent.")
 
 if __name__ == "__main__":
     main()

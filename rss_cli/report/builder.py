@@ -6,7 +6,7 @@ class ReportBuilder:
 
     def build(self, entries: list[dict]) -> str:
         if not entries:
-            return "Brak wpisów po filtracji lub nieprawidłowy kanał RSS."
+            return "Couldn't found any posts related to inputs or RSS Channel is wrong."
 
         lines: list[str] = []
         for index, entry in enumerate(entries, start=1):

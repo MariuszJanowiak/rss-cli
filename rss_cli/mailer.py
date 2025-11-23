@@ -18,5 +18,5 @@ def send_email(subject: str, body: str, to_address: str, from_address: str | Non
     ### Connect with SMTP server
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
         server.starttls() # Start encoding message
-        server.login(SMTP_USERNAME, SMTP_PASSWORD) # log to sender email account
+        server.login(SMTP_USERNAME, SMTP_PASSWORD) # login into email account
         server.send_message(msg) # Sending message

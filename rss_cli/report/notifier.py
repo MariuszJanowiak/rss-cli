@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from rss_cli.config import MSG_SUBJECT, MSG_ADDRESS
+from rss_cli.config import config_message
 from rss_cli.mailer import send_email
 
 @dataclass
 class EmailReportNotifier:
-    subject_template: str | None = MSG_SUBJECT
-    to_address: str | None = MSG_ADDRESS
+    subject_template: str | None = config_message[0]
+    to_address: str | None = config_message[1]
 
     def __post_init__(self):
         if not self.to_address:
