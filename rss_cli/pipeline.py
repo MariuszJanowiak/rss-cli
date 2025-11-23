@@ -36,6 +36,8 @@ def filter_entries(entries: Iterable[dict], include=None, exclude=None) -> Itera
             continue
         yield entry
 
+
+# noinspection PyBroadException
 def parse_published_datetime(entry: dict):
     structure = entry.get("published_parsed") or entry.get("updated_parsed")
     if structure:
@@ -49,40 +51,46 @@ def parse_published_datetime(entry: dict):
         return None
 
     try:
-        dt = parsedate_to_datetime(text)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+        date = parsedate_to_datetime(text)
+
+        if date is None:
+            return None
+
+        if date.tzinfo is None:
+            date = date.replace(tzinfo=timezone.utc)
         else:
-            dt = dt.astimezone(timezone.utc)
-        return dt
+            date = date.astimezone(timezone.utc)
+
+        return date
     except Exception:
         return None
 
-def filter_by_age(entries: Iterable[dict], old: int | None) -> Iterator[dict]:
 
+def filter_by_age(entries: Iterable[dict], old: int | None) -> Iterator[dict]:
     now = datetime.now(timezone.utc)
     max_delta = timedelta(days=old)
 
     for entry in entries:
         date = entry.get("published_datetime")
         if date is None:
-            continue
+            return None
 
         if now - date <= max_delta:
             yield entry
+    return None
 
-def build_pipeline(parsed: dict, old: int, include=None, exclude=None, limit: int | None = None) -> list[dict]:
-    entries = lazy_iter_entries(parsed)
-    entries = normalize_entries(entries)
-    entries = filter_entries(entries, include, exclude)
 
+def build_pipeline( parsed: dict, old: int | None, include=None, exclude=None, limit: int | None = None) -> list[dict]:
     if old is not None:
         if old < 1: old = 1
         if old > 31: old = 31
 
+    entries = lazy_iter_entries(parsed)
+    entries = normalize_entries(entries)
+    entries = filter_entries(entries, include, exclude)
+    entries = filter_by_age(entries, old)
+
     if limit is not None and limit > 0:
         entries = islice(entries, limit)
-
-    entries = filter_by_age(entries, old)
 
     return list(entries)
