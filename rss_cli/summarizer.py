@@ -5,26 +5,46 @@ _client = None
 if API_GROQ_KEY:
     _client = Groq(api_key=API_GROQ_KEY)
 else:
-    raise RuntimeError("Brak API_GROQ_KEY w .env – wymagany dla AI summarizer.")
+    raise RuntimeError("Missing API_GROQ_KEY in .env - It's AI summarizer requirments.")
 
 def fallback_from_rss(entry: dict) -> str:
     summary = entry.get("summary") or ""
     if not summary:
-        return "Brak opisu artykułu w RSS – przeczytaj pełny tekst pod linkiem."
+        return "Missing article description – take a look on full article beside the link."
 
     if len(summary) > 500:
         return summary[:500].rstrip() + "..."
     return summary
 
 
-def build_prompt(entry: dict) -> str:
-    return (
-        "Streść poniższy artykuł w kilku krótkich zdaniach po polsku żywając przy tym poprawnej gramatyk. "
-        "Podaj najważniejsze informacje, bez lania wody.\n\n"
-        f"Tytuł: {entry.get('title')}\n"
-        f"Link: {entry.get('link')}\n\n"
-        f"Treść:\n{entry.get('summary')}"
-    )
+def build_prompt(entry: dict, language: str = "pl") -> str:
+
+    title = entry.get("title") or ""
+    summary = entry.get("summary") or ""
+    link = entry.get("link") or ""
+
+    if language == "pl":
+        return (
+            "Streść poniższy artykuł w 3–5 zdaniach po polsku uzywając poprawnej polszczyzny."
+            "Czyli np. nie powtarzaj wyrazów/nazw/imion/itp. bez potrzeby. "
+            "Podaj wyłącznie treść streszczenia - bez żadnych wstępów, "
+            "bez formułek typu 'Poniżej przedstawiam streszczenie', "
+            "'Oto streszczenie artykułu', 'W tym artykule' lub podobnych. "
+            "Zacznij natychmiast od konkretów.\n\n"
+            f"Tytuł: {title}\n"
+            f"Treść artykułu z RSS:\n{summary}"
+        )
+
+    else:
+        return (
+            "Summarize this article in 3–5 short sentences in English. "
+            "Do NOT write any introductions like 'Here is the summary', "
+            "'Below is the summary', or 'This article discusses'. "
+            "Start immediately with the key facts.\n\n"
+            f"Title: {title}\n"
+            f"RSS content:\n{summary}"
+        )
+
 
 
 def summarize_entry(entry: dict, language: str = "pl") -> str:

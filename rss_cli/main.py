@@ -1,5 +1,4 @@
 import argparse
-
 from fetch import fetch_feed
 from report.builder import ReportBuilder
 from report.notifier import EmailReportNotifier
@@ -29,15 +28,26 @@ def main():
     # Pipeline
     include = args.include.split(",") if args.include else []
     exclude = args.exclude.split(",") if args.exclude else []
-    entries = build_pipeline(parsed, old=args.old, include=include, exclude=exclude, limit=args.limit)
+    entries = build_pipeline(
+        parsed,
+        old=args.old,
+        include=include,
+        exclude=exclude,
+        limit=args.limit,
+    )
 
     # Report
     builder = ReportBuilder(language="pl")
-    report_body = builder.build(entries)
+    text_body = builder.build_text(entries)
+    html_body = builder.build_html(entries, feed_url=args.url)
 
     # Mail sender
     notifier = EmailReportNotifier()
-    notifier.send_report(report_body, feed_url=args.url)
+    notifier.send_report(
+        text_body=text_body,
+        html_body=html_body,
+        feed_url=args.url,
+    )
 
     print("Email has been sent.")
 
