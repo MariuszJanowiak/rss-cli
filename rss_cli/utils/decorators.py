@@ -1,10 +1,14 @@
 import os
 import time
 import functools
+import logging
 from collections import deque
 from typing import Callable, Type
 
+logger = logging.getLogger(__name__)
+
 ### Connection
+
 def timer(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -13,52 +17,66 @@ def timer(func: Callable) -> Callable:
             return func(*args, **kwargs)
         finally:
             result = time.perf_counter() - start
-            print(f"[timer] {func.__name__} execution time: {result:.2f}s")
+            logger.info("[timer] %s execution time: %.2fs", func.__name__, result)
     return wrapper
 
 def retry(exceptions: tuple[Type[BaseException], ...], tries: int = 3, delay: int = 1):
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            last_error = None
-            for attempt in range(0, tries):
+            last_error: BaseException | None = None
+            for attempt in range(1, tries + 1):
                 try:
                     return func(*args, **kwargs)
-                except exceptions as e:
+                except exceptions as e:  # type: ignore[misc]
                     last_error = e
-                    print(f"[retry] {func.__name__} failed (attempt {attempt}/{tries}): {e}")
+                    logger.warning(
+                        "[retry] %s failed (attempt %s/%s): %s",
+                        func.__name__, attempt, tries, e,
+                    )
                     if attempt < tries:
                         time.sleep(delay)
+            assert last_error is not None
             raise last_error
         return wrapper
     return decorator
 
 def rate_limit(max_calls: int, time_limit: int):
     def decorator(func: Callable) -> Callable:
-        calls = deque() # deque collection as a cache does object easiest to manage
+        calls = deque()
+
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            now = time.monotonic() # Monotonic time generator used to keep clock consistent
+            now = time.monotonic()
             while calls and now - calls[0] > time_limit:
                 calls.popleft()
+
             if len(calls) >= max_calls:
                 sleep_time = time_limit - (now - calls[0])
                 if sleep_time > 0:
-                    print(f"[rate_limit] waiting {sleep_time:.2f}s before calling {func.__name__}")
+                    logger.info(
+                        "[rate_limit] waiting %.2fs before calling %s",
+                        sleep_time, func.__name__,
+                    )
                     time.sleep(sleep_time)
+
             calls.append(time.monotonic())
             return func(*args, **kwargs)
+
         return wrapper
     return decorator
 
 ### Validation
+
 def send_mail_validator(*required_keys: str):
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
             missing = [key for key in required_keys if not os.getenv(key)]
             if missing:
-                raise RuntimeError(f"Missing required configuration values: {', '.join(missing)}")
+                msg = f"Missing required configuration values: {', '.join(missing)}"
+                logger.error(msg)
+                raise RuntimeError(msg)
             return func(*args, **kwargs)
         return wrapper
     return decorator

@@ -1,16 +1,32 @@
+import logging
+from typing import Optional
+
 from groq import Groq
 from config import API_GROQ_KEY
 
-_client = None
-if API_GROQ_KEY:
+logger = logging.getLogger(__name__)
+
+_client: Optional[Groq] = None
+
+def get_client() -> Optional[Groq]:
+    global _client
+    if _client is not None:
+        return _client
+
+    if not API_GROQ_KEY:
+        logger.warning(
+            "API_GROQ_KEY missing – summarizer will use RSS fallback instead of Groq."
+        )
+        return None
+
     _client = Groq(api_key=API_GROQ_KEY)
-else:
-    raise RuntimeError("Missing API_GROQ_KEY in .env - It's AI summarizer requirments.")
+    return _client
+
 
 def fallback_from_rss(entry: dict) -> str:
     summary = entry.get("summary") or ""
     if not summary:
-        return "Missing article description – take a look on full article beside the link."
+        return "Missing article description – take a look full article in link."
 
     if len(summary) > 500:
         return summary[:500].rstrip() + "..."
@@ -18,45 +34,43 @@ def fallback_from_rss(entry: dict) -> str:
 
 
 def build_prompt(entry: dict, language: str = "pl") -> str:
-
     title = entry.get("title") or ""
     summary = entry.get("summary") or ""
     link = entry.get("link") or ""
 
     if language == "pl":
         return (
-            "Streść poniższy artykuł w 3–5 zdaniach po polsku uzywając poprawnej polszczyzny."
-            "Czyli np. nie powtarzaj wyrazów/nazw/imion/itp. bez potrzeby. "
-            "Podaj wyłącznie treść streszczenia - bez żadnych wstępów, "
-            "bez formułek typu 'Poniżej przedstawiam streszczenie', "
-            "'Oto streszczenie artykułu', 'W tym artykule' lub podobnych. "
-            "Zacznij natychmiast od konkretów.\n\n"
+            "Streść poniższy artykuł w 3–5 zdaniach po polsku, używając poprawnej polszczyzny. "
+            "Nie dodawaj wstępów typu 'Poniżej przedstawiam streszczenie artykułu' "
+            "ani 'Oto streszczenie artykułu'. Zacznij od konkretów.\n\n"
             f"Tytuł: {title}\n"
             f"Treść artykułu z RSS:\n{summary}"
         )
-
     else:
         return (
             "Summarize this article in 3–5 short sentences in English. "
-            "Do NOT write any introductions like 'Here is the summary', "
-            "'Below is the summary', or 'This article discusses'. "
+            "Do NOT write any introductions like 'Here is the summary' or 'This article discusses'. "
             "Start immediately with the key facts.\n\n"
             f"Title: {title}\n"
             f"RSS content:\n{summary}"
         )
 
-
-
 def summarize_entry(entry: dict, language: str = "pl") -> str:
-    prompt = build_prompt(entry)
+    client = get_client()
+    if client is None:
+        return fallback_from_rss(entry)
+
+    prompt = build_prompt(entry, language=language)
 
     try:
-        response = _client.chat.completions.create(
+        response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {
                     "role": "system",
-                    "content": "Jesteś asystentem, który tworzy krótkie i rzeczowe streszczenia artykułów."
+                    "content": (
+                        "Jesteś asystentem, który tworzy krótkie i rzeczowe streszczenia artykułów."
+                    ),
                 },
                 {"role": "user", "content": prompt},
             ],
@@ -66,10 +80,26 @@ def summarize_entry(entry: dict, language: str = "pl") -> str:
 
         content = response.choices[0].message.content
         if not content:
+            logger.warning("Groq returned empty content – using RSS fallback.")
             return fallback_from_rss(entry)
 
-        return content.strip()
+        text = content.strip()
+
+        intro_trash = [
+            "Poniżej przedstawiam",
+            "Oto streszczenie artykułu",
+            "Poniżej znajduje się",
+            "W artykule opisano",
+            "Ten artykuł omawia",
+            "W tym artykule",
+        ]
+        for phrase in intro_trash:
+            if text.lower().startswith(phrase.lower()):
+                text = text[len(phrase):].lstrip(" :,-.\n")
+                break
+
+        return text
 
     except Exception as e:
-        print(f"[summarizer][GROQ ERROR] {e}")
+        logger.exception("[summarizer][GROQ ERROR] %s", e)
         return fallback_from_rss(entry)
