@@ -7,7 +7,7 @@ LOG_DIR.mkdir(exist_ok=True)
 
 LOG_FILE = LOG_DIR / "rss_cli.log"
 
-def setup_logging(level: int = logging.INFO) -> None:
+def setup_logging(level: int = logging.INFO):
     """
     Global configuration:
     - logs to console
@@ -18,8 +18,9 @@ def setup_logging(level: int = logging.INFO) -> None:
         format="%(asctime)s [%(levelname)s] %(name)s - %(message)s",
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler(LOG_FILE, encoding="utf-8"),
+            logging.FileHandler(LOG_FILE, encoding="utf-8")
         ],
+        force=True,
     )
 
     # Keep quiet several dll's

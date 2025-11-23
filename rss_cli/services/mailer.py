@@ -1,10 +1,8 @@
 import smtplib
-from rss_cli.utils.decorators import send_mail_validator
 from email.message import EmailMessage
+from rss_cli.utils.validators import validate_smtp_config
 from rss_cli.config import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 
-
-@send_mail_validator("SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")
 def send_email(
     subject: str,
     body_text: str,
@@ -13,8 +11,10 @@ def send_email(
     body_html: str | None = None,
 ):
 
-    ### Edge
-    if not from_address: from_address = SMTP_USERNAME
+    validate_smtp_config()
+
+    if not from_address:
+        from_address = SMTP_USERNAME
 
     msg = EmailMessage()
     msg["Subject"] = subject
@@ -22,7 +22,7 @@ def send_email(
     msg["From"] = from_address
 
     if body_html:
-        msg.set_content(body_text or "Zobacz wersję HTML wiadomości.")
+        msg.set_content(body_text or "Take a look at the HTML version of the email.")
         msg.add_alternative(body_html, subtype="html")
     else:
         msg.set_content(body_text)

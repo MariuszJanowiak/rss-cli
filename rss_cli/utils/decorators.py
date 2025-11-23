@@ -8,7 +8,6 @@ from typing import Callable, Type
 logger = logging.getLogger(__name__)
 
 ### Connection
-
 def timer(func: Callable) -> Callable:
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -28,7 +27,7 @@ def retry(exceptions: tuple[Type[BaseException], ...], tries: int = 3, delay: in
             for attempt in range(1, tries + 1):
                 try:
                     return func(*args, **kwargs)
-                except exceptions as e:  # type: ignore[misc]
+                except exceptions as e:
                     last_error = e
                     logger.warning(
                         "[retry] %s failed (attempt %s/%s): %s",
@@ -63,20 +62,5 @@ def rate_limit(max_calls: int, time_limit: int):
             calls.append(time.monotonic())
             return func(*args, **kwargs)
 
-        return wrapper
-    return decorator
-
-### Validation
-
-def send_mail_validator(*required_keys: str):
-    def decorator(func: Callable) -> Callable:
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            missing = [key for key in required_keys if not os.getenv(key)]
-            if missing:
-                msg = f"Missing required configuration values: {', '.join(missing)}"
-                logger.error(msg)
-                raise RuntimeError(msg)
-            return func(*args, **kwargs)
         return wrapper
     return decorator

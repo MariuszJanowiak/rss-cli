@@ -1,11 +1,12 @@
 import argparse
 import logging
+from logging_config import setup_logging
 
 from rss_cli.core.fetch import fetch_feed
-from report.builder import ReportBuilder
-from rss_cli.services.notifier import EmailReportNotifier
 from rss_cli.core.pipeline import build_pipeline
-from logging_config import setup_logging
+from rss_cli.report.builder import ReportBuilder
+from rss_cli.services.notifier import EmailReportNotifier
+from rss_cli.utils.validators import validate_cli_args, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -28,23 +29,24 @@ def parse_args() -> argparse.Namespace:
         default=10,
         help="Posts limiter (default: 10)",
     )
-    parser.add_argument(
-        "--include",
-        help="Post required Keywords (separate by comma)")
-    parser.add_argument(
-        "--exclude",
-        help="Post unacceptable Keywords (separate by comma)")
+    parser.add_argument("--include", help="Post required Keywords (separate by comma)")
+    parser.add_argument("--exclude", help="Post unacceptable Keywords (separate by comma)")
 
     return parser.parse_args()
 
-def run_cli() -> None:
+def main():
+
     # Input
     args = parse_args()
-    logger.info(
-        "Starting RSS-CLI for url=%s, old=%s, limit=%s",
-        args.url,
-        args.old,
-        args.limit)
+    logger.info("Starting RSS CLI for url=%s, old=%s, limit=%s",
+                args.url, args.old, args.limit)
+    try:
+        validate_cli_args(args)
+    except ValidationError as e:
+        print("Invalid arguments:\n")
+        print(e)
+        raise SystemExit(2)
+
 
     # Feed
     parsed = fetch_feed(args.url)
@@ -59,7 +61,6 @@ def run_cli() -> None:
         exclude=exclude,
         limit=args.limit,
     )
-    logger.info("Pipeline produced %s entries.", len(entries))
 
     # Report
     builder = ReportBuilder(language="pl")
@@ -74,15 +75,12 @@ def run_cli() -> None:
         feed_url=args.url,
     )
 
-    logger.info("Email has been sent to %s.", notifier.to_address)
     print("Email has been sent.")
 
 if __name__ == "__main__":
     setup_logging()
-
     try:
-        run_cli()
+        main()
     except Exception:
-        # global stack trace logger - finishing process with code 1
-        logging.getLogger(__name__).exception("Unhandled error in CLI:")
+        logger.exception("Unhandled error in CLI:")
         raise SystemExit(1)
