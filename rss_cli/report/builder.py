@@ -1,4 +1,4 @@
-from rss_cli.summarizer import summarize_entry
+from rss_cli.services.summarizer import summarize_entry
 from datetime import datetime
 
 class ReportBuilder:

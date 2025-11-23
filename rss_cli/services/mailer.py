@@ -1,7 +1,7 @@
 import smtplib
-from decorators import send_mail_validator
+from rss_cli.utils.decorators import send_mail_validator
 from email.message import EmailMessage
-from config import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+from rss_cli.config import SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
 
 
 @send_mail_validator("SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD")

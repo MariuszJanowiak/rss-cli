@@ -1,8 +1,8 @@
 import argparse
-from fetch import fetch_feed
+from rss_cli.core.fetch import fetch_feed
 from report.builder import ReportBuilder
-from report.notifier import EmailReportNotifier
-from pipeline import build_pipeline
+from rss_cli.services.notifier import EmailReportNotifier
+from rss_cli.core.pipeline import build_pipeline
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
