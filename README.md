@@ -36,7 +36,7 @@ SMTP_PASSWORD=your_app_password
 Notes:
 
 * If `API_GROQ_KEY` is missing, summaries fall back to RSS `summary` content.
-* Gmail users must use an **App Password** (not your real password).
+* Gmail users must use an **App Password** (not your real password!).
 
 ---
 
@@ -61,6 +61,11 @@ python -m rss_cli.main --url https://krebsonsecurity.com/feed/ --old 7
 ---
 
 ## Examples
+
+### Help that included full instruction to work with
+```bash
+python -m rss_cli.main --help
+```
 
 ### Fetch articles from last 7 days
 
@@ -157,6 +162,6 @@ rss-cli/
   .env
   .gitignore
   README.md
-  requirments.txt   # (typo in name, możesz później poprawić na requirements.txt)
+  requirments.txt
 
 ```
