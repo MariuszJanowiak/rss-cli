@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
         "--url",
         required=True,
         metavar="RSS_URL",
-        help="URL of the RSS feed (must start with http:// or https://).",
+        help="URL of the RSS feed/atom",
     )
 
     parser.add_argument(
