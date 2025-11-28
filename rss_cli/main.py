@@ -1,5 +1,6 @@
 import argparse
 import logging
+import textwrap
 from logging_config import setup_logging
 
 from rss_cli.core.fetch import fetch_feed
@@ -12,25 +13,83 @@ logger = logging.getLogger(__name__)
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        prog="rss_cli",
-        description="RSS news scrapper filtered by targeted keywords."
+        prog="rss-cli",
+        description=(
+            "A command-line tool for fetching RSS feeds, filtering articles, "
+            "summarizing content using AI, and sending a consolidated report via email."
+        ),
+        formatter_class=argparse.RawTextHelpFormatter,
+        epilog=textwrap.dedent(
+            """
+            Examples:
+
+              1) Fetch articles from the last 7 days:
+                 python -m rss_cli.main \\
+                     --url https://krebsonsecurity.com/feed/ \\
+                     --old 7
+
+              2) Filter only Windows-related security topics (max 5 articles):
+                 python -m rss_cli.main \\
+                     --url https://krebsonsecurity.com/feed/ \\
+                     --old 7 \\
+                     --limit 5 \\
+                     --include "windows,security"
+
+              3) Exclude sponsored posts:
+                 python -m rss_cli.main \\
+                     --url https://example.com/rss \\
+                     --old 10 \\
+                     --exclude "sponsored,advertisement"
+
+              4) Cybersecurity-specific report:
+                 python -m rss_cli.main \\
+                     --url https://example.com/cyber/rss \\
+                     --old 3 \\
+                     --include "cve,ransomware,zero-day"
+            """
+        ),
     )
 
-    parser.add_argument("--url", required=True, help="RSS channel URL")
+    parser.add_argument(
+        "--url",
+        required=True,
+        metavar="RSS_URL",
+        help="URL of the RSS feed (must start with http:// or https://).",
+    )
+
     parser.add_argument(
         "--old",
         type=int,
         required=True,
-        help="How old News might be - limit equaled 31 DAYS",
+        metavar="DAYS",
+        help="Maximum article age in days (1–31). Example: 7 = last week only.",
     )
+
     parser.add_argument(
         "--limit",
         type=int,
-        default=10,
-        help="Posts limiter (default: 10)",
+        default=5,
+        metavar="N",
+        help="Maximum number of articles included in the report (default: 5).",
     )
-    parser.add_argument("--include", help="Post required Keywords (separate by comma)")
-    parser.add_argument("--exclude", help="Post unacceptable Keywords (separate by comma)")
+
+    parser.add_argument(
+        "--include",
+        metavar="KEYWORDS",
+        help=(
+            "Comma-separated list of keywords that MUST appear in the article title or summary.\n"
+            'Example: "cve,ransomware,linux".'
+        ),
+    )
+
+    parser.add_argument(
+        "--exclude",
+        metavar="KEYWORDS",
+        help=(
+            "Comma-separated list of keywords that automatically EXCLUDE an article.\n"
+            'Example: "sponsored,advertisement".'
+        ),
+    )
 
     return parser.parse_args()
 
@@ -46,7 +105,6 @@ def main():
         print("Invalid arguments:\n")
         print(e)
         raise SystemExit(2)
-
 
     # Feed
     parsed = fetch_feed(args.url)
