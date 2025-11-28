@@ -2,7 +2,7 @@ import logging
 from typing import Optional
 
 from groq import Groq
-from config import API_GROQ_KEY
+from rss_cli.config import API_GROQ_KEY
 
 logger = logging.getLogger(__name__)
 

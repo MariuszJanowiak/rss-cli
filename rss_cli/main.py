@@ -1,7 +1,7 @@
 import argparse
 import logging
 import textwrap
-from logging_config import setup_logging
+from rss_cli.logging_config import setup_logging
 
 from rss_cli.core.fetch import fetch_feed
 from rss_cli.core.pipeline import build_pipeline
