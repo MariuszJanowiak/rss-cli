@@ -157,6 +157,6 @@ rss-cli/
   .env
   .gitignore
   README.md
-  requirments.txt   # (typo in name, możesz później poprawić na requirements.txt)
+  requirments.txt
 
 ```
