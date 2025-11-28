@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
         "--url",
         required=True,
         metavar="RSS_URL",
-        help="URL of the RSS feed/atom",
+        help="REQUIRED POSITION: URL of the RSS feed/atom",
     )
 
     parser.add_argument(
@@ -62,7 +62,7 @@ def parse_args() -> argparse.Namespace:
         type=int,
         required=True,
         metavar="DAYS",
-        help="Maximum article age in days (1–31). Example: 7 = last week only.",
+        help="REQUIRED POSITION: Maximum article age in days (1–31). Example: 7 = last week only.",
     )
 
     parser.add_argument(
@@ -70,14 +70,14 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=5,
         metavar="N",
-        help="Maximum number of articles included in the report (default: 5).",
+        help="OPTIONAL POSITION: Maximum number of articles included in the report (default: 5).",
     )
 
     parser.add_argument(
         "--include",
         metavar="KEYWORDS",
         help=(
-            "Comma-separated list of keywords that MUST appear in the article title or summary.\n"
+            "OPTIONAL POSITION: Comma-separated list of keywords that MUST appear in the article title or summary.\n"
             'Example: "cve,ransomware,linux".'
         ),
     )
@@ -86,7 +86,7 @@ def parse_args() -> argparse.Namespace:
         "--exclude",
         metavar="KEYWORDS",
         help=(
-            "Comma-separated list of keywords that automatically EXCLUDE an article.\n"
+            "OPTIONAL POSITION: Comma-separated list of keywords that automatically EXCLUDE an article.\n"
             'Example: "sponsored,advertisement".'
         ),
     )
