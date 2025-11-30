@@ -85,7 +85,7 @@ def build_pipeline(
     old: int | None,
     include=None,
     exclude=None,
-    limit: int | None = None
+    limit: int | None = 5
 ) -> list[dict]:
     if old is not None:
         if old < 1:
