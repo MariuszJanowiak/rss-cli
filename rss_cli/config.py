@@ -20,7 +20,7 @@ MSG_ADDRESS = os.getenv("MSG_ADDRESS")
 ### API
 API_GROQ_KEY = os.getenv("API_GROQ_KEY")
 
-### Init import object
+### Objects
 config_file = (BASE_DIR, env_path)
 config_smtp = (SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD)
 config_message = (MSG_SUBJECT, MSG_ADDRESS)

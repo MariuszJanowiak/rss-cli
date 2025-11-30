@@ -17,6 +17,7 @@ def parse_args() -> argparse.Namespace:
         description=(
             "A command-line tool for fetching RSS feeds, filtering articles, "
             "summarizing content using AI, and sending a consolidated report via email."
+            "for more information jump into https://github.com/MariuszJanowiak/rss-cli"
         ),
         formatter_class=argparse.RawTextHelpFormatter,
         epilog=textwrap.dedent(

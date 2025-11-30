@@ -27,13 +27,13 @@ def validate_cli_args(args: argparse.Namespace) -> None:
     elif not any(substring in args.url for substring in forbidden_substrings):
         errors.append("--url must be RSS or Atom Channel")
 
-    # old
+    # OLD
     if args.old is None:
         errors.append("--old is required.")
     elif not (1 <= args.old <= 31):
         errors.append("--old must be between 1 and 31 days.")
 
-    # limit
+    # LIMIT
     if args.limit is not None and args.limit <= 0:
         errors.append("--limit must be a positive integer.")
 

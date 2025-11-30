@@ -22,7 +22,7 @@ def send_email(
     msg["From"] = from_address
 
     if body_html:
-        msg.set_content(body_text or "Take a look at the HTML version of the email.")
+        msg.set_content(body_text or "Take a look at the HTML mail version.")
         msg.add_alternative(body_html, subtype="html")
     else:
         msg.set_content(body_text)
